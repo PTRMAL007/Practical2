@@ -42,14 +42,16 @@ main_loop:
 	@ Check each button and set LEDs accordingly
 
 	@ Button 0
-	MOV R4, #1
+	MOVS R4, #1
 	TST R3, R4
 	BEQ button0
 
 default:
+	MOVS R2, #0x00
+	B write_leds
 
 button0:
-	MOVS R2, #0xFF
+	MOVS R2, #0x0F
 	B write_leds
 
 button1:
