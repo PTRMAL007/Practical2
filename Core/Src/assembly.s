@@ -27,6 +27,7 @@ ASM_Main:
 	LDR R0, GPIOA_BASE		@ Enable pull-up resistors for pushbuttons
 	MOVS R1, #0b01010101
 	STR R1, [R0, #0x0C]
+	
 	LDR R1, GPIOB_BASE  	@ Set pins connected to LEDs to outputs
 	LDR R2, MODER_OUTPUT
 	STR R2, [R1, #0]
