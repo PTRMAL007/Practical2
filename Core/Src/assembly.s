@@ -36,8 +36,20 @@ ASM_Main:
 
 main_loop:
 	@ Read button states from GPIOA IDR
+	LDR R0, GPIOA_BASE
+	LDR R3, [R0, #0x10]		@ Read GPIOA IDR
 
 	@ Check each button and set LEDs accordingly
+
+default:
+
+button0:
+
+button1:
+
+button2:
+
+button3:
 
 write_leds:
 	STR R2, [R1, #0x14]
