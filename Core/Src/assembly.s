@@ -46,6 +46,21 @@ main_loop:
 	TST R3, R4
 	BEQ button0
 
+	@ Button 1
+	MOVS R4, #4
+	TST R3, R4
+	BEQ button1
+
+	@ Button 2
+	MOVS R4, #16
+	TST R3, R4
+	BEQ button2
+
+	@ Button 3
+	MOVS R4, #64
+	TST R3, R4
+	BEQ button3
+
 default:
 	MOVS R2, #0x00
 	B write_leds
@@ -55,10 +70,16 @@ button0:
 	B write_leds
 
 button1:
+	MOVS R2, #0x01
+	B write_leds
 
 button2:
+	MOVS R2, #0x02
+	B write_leds
 
 button3:
+	MOVS R2, #0x04
+	B write_leds
 
 write_leds:
 	STR R2, [R1, #0x14]
