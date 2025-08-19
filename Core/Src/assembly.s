@@ -2,7 +2,7 @@
  * assembly.s
  *
  */
- 
+
  @ DO NOT EDIT
 	.syntax unified
     .text
@@ -38,6 +38,7 @@ main_loop:
 	@ Read button states from GPIOA IDR
 	LDR R0, GPIOA_BASE
 	LDR R3, [R0, #0x10]		@ Read GPIOA IDR
+	LDR R1, GPIOB_BASE
 
 	@ Check each button and set LEDs accordingly
 
@@ -47,37 +48,42 @@ main_loop:
 	BEQ button0
 
 	@ Button 1
-	MOVS R4, #4
+	MOVS R4, #2
 	TST R3, R4
 	BEQ button1
 
 	@ Button 2
-	MOVS R4, #16
+	MOVS R4, #4
 	TST R3, R4
 	BEQ button2
 
 	@ Button 3
-	MOVS R4, #64
+	MOVS R4, #8
 	TST R3, R4
 	BEQ button3
 
 default:
+	@ All LEDs off for default
 	MOVS R2, #0x00
 	B write_leds
 
 button0:
+	@ Half on, half off for button 0
 	MOVS R2, #0x0F
 	B write_leds
 
 button1:
-	MOVS R2, #0x01
+	@ All LEDs on for button 1
+	MOVS R2, #0xFF
 	B write_leds
 
 button2:
+	@ LED 2 on for button 2
 	MOVS R2, #0x02
 	B write_leds
 
 button3:
+	@ LED 3 on for button 3
 	MOVS R2, #0x04
 	B write_leds
 
@@ -94,5 +100,5 @@ GPIOB_BASE:  		.word 0x48000400
 MODER_OUTPUT: 		.word 0x5555
 
 @ TODO: Add your own values for these delays
-LONG_DELAY_CNT: 	.word 0
-SHORT_DELAY_CNT: 	.word 0
+LONG_DELAY_CNT: 	.word 12000000
+SHORT_DELAY_CNT: 	.word 4800000
