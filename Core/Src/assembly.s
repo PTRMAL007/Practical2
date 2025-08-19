@@ -32,118 +32,78 @@ ASM_Main:
 	STR R2, [R1, #0]
 	MOVS R2, #0         	@ NOTE: R2 will be dedicated to holding the value on the LEDs
 
+@ TODO: Add code, labels and logic for button checks and LED patterns
+
 main_loop:
 	@ Read button states from GPIOA IDR
 	LDR R0, GPIOA_BASE
 	LDR R3, [R0, #0x10]		@ Read GPIOA IDR
 	LDR R1, GPIOB_BASE
 
-	@ Check SW2 first (pattern override)
+	@ Check each button and set LEDs accordingly
+	@ Button 0
+	MOVS R4, #1
+	TST R3, R4
+	BEQ button0
+
+	@ Button 1
+	MOVS R4, #2
+	TST R3, R4
+	BEQ button1
+
+	@ Button 2
 	MOVS R4, #4
 	TST R3, R4
 	BEQ button2
 
-	@ Check SW3 (freeze)
+	@ Button 3
 	MOVS R4, #8
 	TST R3, R4
 	BEQ button3
 
-	@ Check SW0 and SW1 for increment and timing modifications
-	@ Set default increment value
-	LDR R6, =increment_value
-	MOVS R5, #1
-	STR R5, [R6]
-
-	@ Check SW0 for increment by 2
-	MOVS R4, #1
-	TST R3, R4
-	BNE check_sw1
-	MOVS R5, #2
-	STR R5, [R6]
-
-check_sw1:
-	@ Set delay based on SW1
-	MOVS R4, #2
-	TST R3, R4
-	BNE use_short_delay
-	LDR R0, LONG_DELAY_CNT    @ 0.7 seconds
-	B default
-	
-use_short_delay:
-	LDR R0, SHORT_DELAY_CNT   @ 0.3 seconds
-	B default
-
 @ By default, the LEDs should increment by 1 every 0.7 seconds 
 @ (with the count starting from 0)
 default:
-    @ Load current table pointer
-    LDR R6, =table_pointer
-    LDR R7, [R6]              @ R7 = current position in table
-    
-    @ Get LED pattern from table
-    LDR R2, [R7]              @ Load current pattern into R2
-    
-    @ Load increment value
-    LDR R4, =increment_value
-    LDR R5, [R4]              @ Load increment (1 or 2)
-    
-    @ Advance table pointer by increment value
-    LSLS R5, R5, #2           @ Multiply by 4 (word size)
-    ADDS R7, R7, R5           @ Advance pointer
-    
-    @ Check if we've reached end of table
-    LDR R4, =BlinkTableEnd
-    CMP R7, R4
-    BGE reset_table           @ If at or past end, reset
-    B store_pointer
-    
-reset_table:
-    @ Reset to beginning of table
-    LDR R7, =BlinkTable
-    
-store_pointer:
-    STR R7, [R6]              @ Store updated pointer
-    B write_leds_with_delay
+	@ All LEDs off for default
+	MOVS R2, #0x00
+	B write_leds
+
+@ While SW0 is being held down, the LEDs should change to 
+@ increment by 2 every 0.7 seconds
+button0:
+	@ Half on, half off for button 0
+	MOVS R2, #0x0F
+	B write_leds
+
+@ While SW1 is being held down, the increment timing 
+@ should change to every 0.3 seconds
+button1:
+	@ All LEDs on for button 1
+	MOVS R2, #0xFF
+	B write_leds
 
 @ While SW2 is being held down, the LED pattern should
 @ be set to 0xAA. Naturally, the pattern should stay at 0xAA 
 @ until SW2 is released, at which point it will continue counting
 @ normally from there
 button2:
-	MOVS R2, #0xAA
-	B write_leds_no_delay
+	@ LED 2 on for button 2
+	MOVS R2, #0x02
+	B write_leds
 
 @ While SW3 is being held down, the pattern should freeze, 
 @ and then resume counting only when SW3 is released
 button3:
-	@ Keep current LED state (don't update table pointer)
-	LDR R6, =table_pointer
-	LDR R7, [R6]
-	LDR R2, [R7]              @ Load current pattern (frozen)
-	B write_leds_no_delay
+	@ LED 3 on for button 3
+	MOVS R2, #0x04
+	B write_leds
 
-write_leds_with_delay:
-	@ Write pattern to LEDs
-	STR R2, [R1, #0x14]
-	
-	@ Delay
-delay_loop:
-    SUBS R0, R0, #1
-    BNE delay_loop
-    
-    B main_loop
+@ Only one of SW2 or SW3 will be held down at one time, 
+@ but SW0 and SW1 may be held at the same time
 
-write_leds_no_delay:
-	@ Write pattern to LEDs without advancing table
+write_leds:
 	STR R2, [R1, #0x14]
-	
-	@ Short delay to prevent button bounce
-	LDR R0, =500000
-short_delay:
-    SUBS R0, R0, #1
-    BNE short_delay
-    
-    B main_loop
+	B main_loop
 
 @ LITERALS; DO NOT EDIT
 	.align
@@ -157,7 +117,9 @@ MODER_OUTPUT: 		.word 0x5555
 LONG_DELAY_CNT: 	.word 12000000
 SHORT_DELAY_CNT: 	.word 4800000
 
-BlinkTable:			.word 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80
-BlinkTableEnd:		
+BlinkTable:			.word 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80  @ Example 8-step pattern
+BlinkTableEnd :		
 table_pointer: 		.word BlinkTable
+counter_value: 		.word 0
+delay_counter: 		.word 0
 increment_value: 	.word 1
