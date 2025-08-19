@@ -64,15 +64,46 @@ main_loop:
 @ By default, the LEDs should increment by 1 every 0.7 seconds 
 @ (with the count starting from 0)
 default:
-	@ All LEDs off for default
-	MOVS R2, #0x00
+	MOVS R2, #0x01
+	B write_leds
+
+	MOVS R2, #0x02
+	B write_leds
+
+	MOVS R2, #0x04
+	B write_leds
+
+	MOVS R2, #0x08
+	B write_leds
+
+	MOVS R2, #0x10
+	B write_leds
+
+	MOVS R2, #0x20
+	B write_leds
+
+	MOVS R2, #0x40
+	B write_leds
+
+	MOVS R2, #0x80
 	B write_leds
 
 @ While SW0 is being held down, the LEDs should change to 
 @ increment by 2 every 0.7 seconds
 button0:
-	@ Half on, half off for button 0
-	MOVS R2, #0x0F
+	MOVS R2, #0x01
+	B write_leds
+
+	MOVS R2, #0x04
+	B write_leds
+
+	MOVS R2, #0x10
+	B write_leds
+
+	MOVS R2, #0x10
+	B write_leds
+
+	MOVS R2, #0x40
 	B write_leds
 
 @ While SW1 is being held down, the increment timing 
@@ -88,14 +119,14 @@ button1:
 @ normally from there
 button2:
 	@ LED 2 on for button 2
-	MOVS R2, #0x02
+	MOVS R2, #0xAA
 	B write_leds
 
 @ While SW3 is being held down, the pattern should freeze, 
 @ and then resume counting only when SW3 is released
 button3:
 	@ LED 3 on for button 3
-	MOVS R2, #0x04
+	MOVS R2, #0xFF
 	B write_leds
 
 @ Only one of SW2 or SW3 will be held down at one time, 
