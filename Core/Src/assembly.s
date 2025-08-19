@@ -41,7 +41,6 @@ main_loop:
 	LDR R1, GPIOB_BASE
 
 	@ Check each button and set LEDs accordingly
-
 	@ Button 0
 	MOVS R4, #1
 	TST R3, R4
@@ -62,30 +61,45 @@ main_loop:
 	TST R3, R4
 	BEQ button3
 
+@ By default, the LEDs should increment by 1 every 0.7 seconds 
+@ (with the count starting from 0)
 default:
 	@ All LEDs off for default
 	MOVS R2, #0x00
 	B write_leds
 
+@ While SW0 is being held down, the LEDs should change to 
+@ increment by 2 every 0.7 seconds
 button0:
 	@ Half on, half off for button 0
 	MOVS R2, #0x0F
 	B write_leds
 
+@ While SW1 is being held down, the increment timing 
+@ should change to every 0.3 seconds
 button1:
 	@ All LEDs on for button 1
 	MOVS R2, #0xFF
 	B write_leds
 
+@ While SW2 is being held down, the LED pattern should
+@ be set to 0xAA. Naturally, the pattern should stay at 0xAA 
+@ until SW2 is released, at which point it will continue counting
+@ normally from there
 button2:
 	@ LED 2 on for button 2
 	MOVS R2, #0x02
 	B write_leds
 
+@ While SW3 is being held down, the pattern should freeze, 
+@ and then resume counting only when SW3 is released
 button3:
 	@ LED 3 on for button 3
 	MOVS R2, #0x04
 	B write_leds
+
+@ Only one of SW2 or SW3 will be held down at one time, 
+@ but SW0 and SW1 may be held at the same time
 
 write_leds:
 	STR R2, [R1, #0x14]
