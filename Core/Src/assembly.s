@@ -40,26 +40,37 @@ main_loop:
 	LDR R3, [R0, #0x10]		@ Read GPIOA IDR
 	LDR R1, GPIOB_BASE
 
+button0:
 	@ Check each button and set LEDs accordingly
-	@ Button 0
+	@ Button 0 - change increment value to 2, default is 1
 	MOVS R4, #1
 	TST R3, R4
-	BEQ button0
+	BNE button1
 
-	@ Button 1
+	// code to change the increment value
+	@ While SW0 is being held down, the LEDs should change to 
+	@ increment by 2 every 0.7 seconds
+
+button1:
+	@ Button 1 - changes timing to 0.3, default is 0.7
 	MOVS R4, #2
 	TST R3, R4
-	BEQ button1
+	BNE otherbuttons
 
-	@ Button 2
+	// code to change timing to 0.3
+	@ While SW1 is being held down, the increment timing 
+	@ should change to every 0.3 seconds
+
+otherbuttons:
+	@ Button 2 - led pattern changes to 0xAA, stays like this
 	MOVS R4, #4
 	TST R3, R4
-	BEQ button2
+	BEQ button2pressed
 
-	@ Button 3
+	@ Button 3 - freezes pattern
 	MOVS R4, #8
 	TST R3, R4
-	BEQ button3
+	BEQ button3pressed
 
 @ By default, the LEDs should increment by 1 every 0.7 seconds 
 @ (with the count starting from 0)
@@ -68,32 +79,18 @@ default:
 	MOVS R2, #0x00
 	B write_leds
 
-@ While SW0 is being held down, the LEDs should change to 
-@ increment by 2 every 0.7 seconds
-button0:
-	@ Half on, half off for button 0
-	MOVS R2, #0x0F
-	B write_leds
-
-@ While SW1 is being held down, the increment timing 
-@ should change to every 0.3 seconds
-button1:
-	@ All LEDs on for button 1
-	MOVS R2, #0xFF
-	B write_leds
-
 @ While SW2 is being held down, the LED pattern should
 @ be set to 0xAA. Naturally, the pattern should stay at 0xAA 
 @ until SW2 is released, at which point it will continue counting
 @ normally from there
-button2:
+button2pressed:
 	@ LED 2 on for button 2
-	MOVS R2, #0x02
+	MOVS R2, #0xAA
 	B write_leds
 
 @ While SW3 is being held down, the pattern should freeze, 
 @ and then resume counting only when SW3 is released
-button3:
+button3pressed:
 	@ LED 3 on for button 3
 	MOVS R2, #0x04
 	B write_leds
@@ -117,9 +114,15 @@ MODER_OUTPUT: 		.word 0x5555
 LONG_DELAY_CNT: 	.word 12000000
 SHORT_DELAY_CNT: 	.word 4800000
 
-BlinkTable:			.word 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80  @ Example 8-step pattern
-BlinkTableEnd :		
-table_pointer: 		.word BlinkTable
-counter_value: 		.word 0
-delay_counter: 		.word 0
-increment_value: 	.word 1
+
+@ PLAN OF ACTION
+@ Need to check if buttons has been pressed
+
+@ Default - have an array to store states, go through array using increment counter, branch if button pressed? ie. idr changes
+@ SW0 - changes incrementing value to 2 while being pressed ie. initialise increment value variable
+@ SW1 - changes increment timing ie. long_delay_cnt vs short_delay_cnt
+@ SW2 - interrupt current pattern to make the led pattern 0xAA ie. save the state it was previously in to a variable and then set to AA
+@ SW3 - freeze button ie. save the state ie. idr value ie. base value ie. R3
+
+@ incrementing and timing can be changed at the same time
+
