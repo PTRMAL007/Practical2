@@ -33,6 +33,14 @@ ASM_Main:
 	MOVS R2, #0         	@ NOTE: R2 will be dedicated to holding the value on the LEDs
 
 @ TODO: Add code, labels and logic for button checks and LED patterns
+	
+	@ Initialize variables
+	LDR R0, =led_counter
+	MOVS R1, #0
+	STR R1, [R0]			@ Initialize LED counter to 0
+	LDR R0, =increment_value
+	MOVS R1, #1
+	STR R1, [R0]			@ Initialize increment to 1
 
 main_loop:
 	@ Read button states from GPIOA IDR
@@ -40,7 +48,13 @@ main_loop:
 	LDR R3, [R0, #0x10]		@ Read GPIOA IDR
 	LDR R1, GPIOB_BASE
 
-
+	@ Initialize default values
+	LDR R0, =increment_value
+	MOVS R4, #1
+	STR R4, [R0]			@ Default increment = 1
+	LDR R0, =delay_mode
+	MOVS R4, #0
+	STR R4, [R0]			@ Default delay mode = 0 (long delay)
 
 button0:
 	@ Check each button and set LEDs accordingly
@@ -49,9 +63,11 @@ button0:
 	TST R3, R4
 	BNE button1
 
-	// code to change the increment value
 	@ While SW0 is being held down, the LEDs should change to 
 	@ increment by 2 every 0.7 seconds
+	LDR R0, =increment_value
+	MOVS R4, #2
+	STR R4, [R0]
 
 button1:
 	@ Button 1 - changes timing to 0.3, default is 0.7
@@ -59,9 +75,11 @@ button1:
 	TST R3, R4
 	BNE otherbuttons
 
-	// code to change timing to 0.3
 	@ While SW1 is being held down, the increment timing 
 	@ should change to every 0.3 seconds
+	LDR R0, =delay_mode
+	MOVS R4, #1
+	STR R4, [R0]
 
 otherbuttons:
 	@ Button 2 - led pattern changes to 0xAA, stays like this
@@ -86,16 +104,19 @@ default:
 @ until SW2 is released, at which point it will continue counting
 @ normally from there
 button2pressed:
-	@ LED 2 on for button 2
+	@ SW2 is pressed, force LEDs to 0xAA
 	MOVS R2, #0xAA
-	B write_leds
+	STR R2, [R1, #0x14]		@ Write directly to LEDs
+	B main_loop				@ Skip normal counting, go back to check buttons
 
 @ While SW3 is being held down, the pattern should freeze, 
 @ and then resume counting only when SW3 is released
 button3pressed:
-	@ LED 3 on for button 3
-	MOVS R2, #0x04
-	B write_leds
+	@ SW3 is pressed, freeze current pattern
+	LDR R0, =led_counter
+	LDR R2, [R0]			@ Load current counter value
+	STR R2, [R1, #0x14]		@ Write current value to LEDs
+	B main_loop				@ Skip increment and delay, go back to check buttons
 
 @ Only one of SW2 or SW3 will be held down at one time, 
 @ but SW0 and SW1 may be held at the same time
