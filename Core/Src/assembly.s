@@ -40,6 +40,8 @@ main_loop:
 	LDR R3, [R0, #0x10]		@ Read GPIOA IDR
 	LDR R1, GPIOB_BASE
 
+
+
 button0:
 	@ Check each button and set LEDs accordingly
 	@ Button 0 - change increment value to 2, default is 1
@@ -114,6 +116,9 @@ MODER_OUTPUT: 		.word 0x5555
 LONG_DELAY_CNT: 	.word 12000000
 SHORT_DELAY_CNT: 	.word 4800000
 
+led_counter: 		.word 0		@ Current LED counter value (0-255)
+increment_value: 	.word 1		@ Increment amount (1 or 2)
+delay_mode:			.word 0		@ 0 = long delay, 1 = short delay
 
 @ PLAN OF ACTION
 @ Need to check if buttons has been pressed
